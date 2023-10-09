@@ -2,10 +2,8 @@ library(mclust)
 library(ggplot2)
 
 ##############================= Run iBurst on all samples =================##############
-source("/Users/yanghongguo/Desktop/Research/iBurst/code/mIMPACT/iIMPACT_for_multisample.R")
+source("../../code/mIMPACT/iIMPACT_for_multisample.R")
 
-# set the path and choose to have quality or not
-setwd("/Users/yanghongguo/Desktop/Research/iBurst/data/multisample data/processed")
 
 my_dict <- list("A1", "B1", "C1", "D1", "G1", "H1")
 
