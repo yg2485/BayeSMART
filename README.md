@@ -5,7 +5,8 @@ The model consists of two part: 1) Spatial domain identification of spatial tran
 ![iBURST](fig/flowchart.png)
 
 ## Spatial Domain Identification for Multi-sample
-iBURST was developed and tested under R 4.2.2
+iBURST was developed and tested under R 4.2.2.
+
 The code for the first part is in folder code/mIMPACT. Clone the whold repo and run codes in
 
 ``` 
