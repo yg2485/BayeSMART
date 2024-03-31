@@ -1,4 +1,4 @@
-# iBURST: Integrating Bulk RNA-Seq Data and Spatial Transcriptomics
+# m-iIMPACT: Integrating Bulk RNA-Seq Data and Spatial Transcriptomics
 
 The model consists of two part: 1) Spatial domain identification of spatial transcriptomics(ST) on multi-sample and 2) bulk RNA-seq deconvolution
 
