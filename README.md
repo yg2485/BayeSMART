@@ -2,7 +2,7 @@
 
 The model consists of two part: 1) Spatial domain identification of spatial transcriptomics(ST) on multi-sample and 2) bulk RNA-seq deconvolution
 
-![iBURST](fig/flowchart.png)
+![m-iIMPACT](fig/flowchart.png)
 
 ## Spatial Domain Identification for Multi-sample
 iBURST was developed and tested under R 4.2.2.
