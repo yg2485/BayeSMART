@@ -1,19 +1,24 @@
 # BayeSMART: Bayesian clustering of multi-sample spatially resolved transcriptomics data
 
-The model consists of two part: 1) Spatial domain identification of spatial transcriptomics(ST) on multi-sample and 2) bulk RNA-seq deconvolution
 
 ![BayeSMART](fig/flowchart.png)
 
-## Spatial Domain Identification for Multi-sample
-iBURST was developed and tested under R 4.2.2.
 
-The code for the first part is in folder code/mIMPACT. Clone the whold repo and run codes in
+## Setup
+**BayeSMART** was developed and tested under R 4.2.2. The following packages are required:
+- Rcpp_1.0.11   
+- mvtnorm_1.2-4 
+- scater_1.26.1
+- scran_1.26.2 
+- MASS_7.3-60  
+- harmony_0.1.1
+- SPARK_1.1.1
+- mclust_6.0.1  
+- dplyr_1.1.4  
 
-``` 
-main.R
-```
 
-For getting the results of six breast cancer patients, source the functions first by
+## Run the model
+Import the model to R:
 ```r
 source("/Users/yanghongguo/Desktop/code/BayeSMART.R")
 ```
@@ -69,7 +74,7 @@ z_all <- domain_split(spatial_domain, G_origin, xys)
 ```
 
 
-Calculate the ARI for each sample
+## Calculate the ARI for each sample
 ```r
 library(mclust)
 scores_ARI <- c()
