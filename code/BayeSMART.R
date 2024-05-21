@@ -9,16 +9,11 @@
 Rcpp::sourceCpp('./BayeSMART.cpp')
 
 # load other packages
-library(DirichletReg)
 library(mvtnorm)
-# library(LaplacesDemon)
-# library(SingleCellExperiment)
-# library(scater)
+library(scater)
 library(scran)
 library(MASS)
 library(readr)
-
-
 
 
 # Summarize neighborhood information: Extract the indices of all neighbors for each spot
