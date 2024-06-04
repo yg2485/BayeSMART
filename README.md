@@ -20,12 +20,12 @@
 ## Run the model
 Import the model to R:
 ```r
-source("/Users/yanghongguo/Desktop/code/BayeSMART.R")
+source("~/code/BayeSMART.R")
 ```
 
 import the data and preprocess to get the molecular, image, and spatial profiles
 ```r
-load("/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/HER2_p.RData")
+load("~/data/HER2_p.RData")
 
 xys <- lapply(xys_her2, function(info.i){
   as.matrix(info.i[, c("x", "y")])
