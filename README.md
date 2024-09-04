@@ -95,3 +95,16 @@ The result is
 > scores_ARI
 [1] 0.6744486 0.3044600 0.7814962 0.3578727
 ```
+
+## Tutorials for using the deep learning model
+
+The implementation of Hover-Net can be found at [The official GitHub](https://github.com/vqdang/hover_net?tab=readme-ov-file).
+The implementation of HD-Yolo can be found [here](https://github.com/impromptuRong/hd_wsi). The tutorial for using STDeconvolve in R can be found [here](https://jef.works/STdeconvolve/).\\
+
+The number of cell types $Q$ is pre-defined by either the pre-trained models in the deep learning model used, or user specified in STDeconvolve. But STDeconvolve provides a build-in method that can automatically choose the optimal value of $Q$ for users.
+
+## Tutorial for BayeSMART on DLPFC 10x Visium data
+The details of applying BayeSMART on one donor or four donors together are all provided in this toturial [file](Tutorials/Tutorials_DLPFC.html)
+
+## Tutorials for BayeSMART on single-cell SRT data
+The details of applying BayeSMART on single-cell SRT data such as STARmap and MERFISH are provided in this tutorial [markdown file](Tutorials/Tutorials_sc.html).

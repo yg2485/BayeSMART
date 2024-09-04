@@ -1,0 +1,155 @@
+---
+title: "Tutorial of BayeSMART on Single-cell SRT Data"
+author: "Yanghong Guo"
+date: "2024-08-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+
+## BayeSMART on STARmap
+
+```{r, echo=FALSE}
+source("~/Desktop/Research/iBurst/iBURST/code/BayeSMART.R")
+load("/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/STARmap.RData")
+
+cnts <- cnts_starmap
+xys <- lapply(xys_starmap, function(info.i){
+  as.matrix(info.i[, c("x", "y")])
+})
+
+cell_type <- lapply(xys_starmap, function(info.i){
+  as.matrix(info.i[, c("cell")])
+})
+
+annotations <- lapply(xys_starmap, function(info.i){
+  as.matrix(info.i[, c("annotation")])
+})
+
+```
+
+```{r}
+x_grid <- 25
+y_grid <- 20
+
+profiles_sc <- profiles_sc(cnts, xys, cell_type, x_grid = x_grid, y_grid = y_grid, adjacent_slides = TRUE)
+
+```
+
+
+```{r}
+K <- 4
+w <- 0.1
+
+Y <- profiles_sc[['Y']]
+V <- profiles_sc[['V']]
+G <- profiles_sc[['G']]
+G_origin <- profiles_sc[['G_origin']]
+cell_assignment <- profiles_sc[['cell_assignment']]
+spot_xys <- profiles_sc[['spot_xys']]
+
+result <- run.BayeSMART(V, Y, G, n_cluster = K, w = w, lambda = 0)
+
+spatial_domain <- get.spatial.domain(result)
+domain_res <- domain_split(spatial_domain, G_origin, spot_xys)
+```
+
+```{r, fig.width=4, fig.height=3}
+# calculate ARI
+library(mclust)
+library(aricode)
+scores_ARI <- c()
+for (s in 1:3){
+  annotation <- annotations[[s]]
+  cell_z <- domain_res[[s]][cell_assignment[[s]]]
+
+  # plot the clustering result
+  df_BZ <- data.frame(xys[[s]])
+  df_BZ$annotation <- factor(cell_z)
+  df_BZ <- df_BZ[!is.na(df_BZ$annotation), ]
+  p <- ggplot(df_BZ, aes(x = x, y = y, color = annotation)) +
+    geom_point(size = 2) + scale_color_manual(values=c('1' = "#FFFF00", '2' = "darkorange", '3' = '#00FF00', '4' = "#7DFFFF"))+
+    coord_cartesian(xlim = c(0, 13000), ylim = c(0, 7000))+
+    theme(panel.background = element_blank())
+  print(p)
+  
+  ari_score <- adjustedRandIndex(cell_z, annotation)
+  scores_ARI <- c(scores_ARI, ari_score)
+}
+
+scores_ARI
+mean(scores_ARI)
+```
+
+## BayeSMART on MERFISH
+```{r, echo=FALSE}
+source("~/Desktop/Research/iBurst/iBURST/code/BayeSMART.R")
+load("/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/MERFISH.RData")
+
+cnts <- cnts_merfish # a list of gene expression count matrices
+xys <- lapply(xys_merfish, function(info.i){
+  as.matrix(info.i[, c("x", "y")])
+})
+
+cell_type <- lapply(xys_merfish, function(info.i){
+  as.vector(info.i[, "cell"])
+})
+annotations <- lapply(xys_merfish, function(info.i){
+  as.vector(info.i[, "annotation"])
+})
+
+```
+
+```{r}
+x_grid <- 16
+y_grid <- 16
+
+profiles_sc <- profiles_sc(cnts, xys, cell_type, x_grid = x_grid, y_grid = y_grid, adjacent_slides = TRUE)
+
+```
+
+```{r, fig.width=4, fig.height=3}
+########## BayeSMART
+K <- 8
+w <- 0.5
+
+
+Y <- profiles_sc[['Y']]
+V <- profiles_sc[['V']]
+G <- profiles_sc[['G']]
+G_origin <- profiles_sc[['G_origin']]
+cell_assignment <- profiles_sc[['cell_assignment']]
+spot_xys <- profiles_sc[['spot_xys']]
+
+result <- run.BayeSMART(V, Y, G, n_cluster = K, f_val = 1.1, w = w, lambda = 0.009)
+
+spatial_domain <- get.spatial.domain(result)
+domain_res <- domain_split(spatial_domain, G_origin, spot_xys)
+
+# calculate ARI
+library(mclust)
+library(aricode)
+scores_ARI <- c()
+for (s in 1:3){
+  annotation <- annotations[[s]]
+  cell_z <- domain_res[[s]][cell_assignment[[s]]]
+  
+  # plot the clustering result
+  df <- data.frame(xys[[s]])
+  df$annotation <- factor(cell_z)
+
+  g <- ggplot(df, aes(x = x, y = y, color = annotation)) +
+    scale_color_manual(values=c('1' = "#00A9FF", '2' = "#00BE67", '3' = "#CD9600", '4' = '#F8766D', '5' = "#C77CFF", '6' = "#FF61CC", '7' = "#7CAE00", '8' = '#00BFC4'))+
+    geom_point(size = 1)+theme(panel.background = element_blank())
+  print(g)
+
+  ari_score <- adjustedRandIndex(cell_z, annotation)
+  scores_ARI <- c(scores_ARI, ari_score)
+}
+
+scores_ARI
+mean(scores_ARI)
+```

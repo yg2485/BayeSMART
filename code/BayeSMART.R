@@ -6,7 +6,8 @@
 
 
 # load cpp functions
-Rcpp::sourceCpp('./BayeSMART.cpp')
+Rcpp::sourceCpp('/Users/yanghongguo/Desktop/Research/iBurst/iBURST/code/BayeSMART.cpp')
+# Rcpp::sourceCpp('./BayeSMART.cpp')
 
 # load other packages
 library(mvtnorm)
@@ -60,6 +61,7 @@ get.neighbor <- function(loc, n_neighbor, tune = 2){
 # Function to concat the spatial information of each sample together
 # xys: the list containing all the locations of the spots in each sample
 # n_neighbor: number of neighbors of each spot
+# tune: tuning parameter that can change the threshold for choosing neighbors
 spatial_concat <- function(xys, n_neighbor, tune = 2){
   G <- matrix(ncol = n_neighbor, nrow = 0)
   G_origin <- matrix(ncol = n_neighbor, nrow = 0)
@@ -243,21 +245,20 @@ get.domain.cell.prop <- function(result){
 
 
 # Get the list of clustering result of each sample
-domain_split <- function(spatial_domain, G_origin, xys){
+domain_split <- function(spatial_domain, G_origin, xys, area_unit = 3){
   domain_list <- NULL
   each_length <- sapply(xys, nrow)
   for (s in 1:length(xys)){
-    l = each_length[s] ###### revised
+    l = each_length[s] 
     
-    if (s == 1){ ######
+    if (s == 1){
       domains <- spatial_domain[1:l]
-      G1 <- G_origin[1:l, ]
     }else{
       sum_ = sum(each_length[1: (s-1)])
       domains <- spatial_domain[(sum_ + 1): (sum_ + l)]
-      G1 <- G_origin[(sum_ + 1): (sum_ + l), ]
     }
-    spatial_domain_refined <- refine.cluster(G1, domains, area_unit = 3)
+    G1 <- G_origin[[s]]
+    spatial_domain_refined <- refine.cluster(G1, domains, area_unit = area_unit)
     domain_list[[s]] <- spatial_domain_refined
   }
   return (domain_list)
@@ -418,7 +419,7 @@ get_profiles <- function(count, location, celltype, x_grid = 30, y_grid = 30){
 batch_remove <- function(list_count, xys=NULL, gene_select = "hvgs", n_gene = 2000, pcn = 3){
   set.seed(42)
   cnt_all <- do.call(cbind, list_count)
-  # 1.Library size normalization + log transformation
+  # Library size normalization + log transformation
   cnt_all <- scater::normalizeCounts(cnt_all, log = TRUE)
   each_length <- sapply(list_count, ncol)
   if(gene_select == "sparkx"){
@@ -440,18 +441,13 @@ batch_remove <- function(list_count, xys=NULL, gene_select = "hvgs", n_gene = 20
   idx_rm <- apply(cnt_all, 1, sum) == 0
   cnt_all <- cnt_all[!idx_rm, ]
   
-  # 3.Dimension reduction
+  # Dimension reduction
   cnt_all <- apply(cnt_all, MARGIN = 1, scale, 
                  center = T, scale = T)
   Q <- prcomp(cnt_all, scale. = F)$rotation
   cnt_all_f <- (cnt_all %*% Q)[, 1:pcn]
   
-  # library(irlba)
-  # svd_result <- irlba(cnt_all, nv = pcn)
-  # Q <- svd_result$v
-  # cnt_all_f <- cnt_all %*% Q
-  
-  # 4.Batch effect correction
+  # Batch effect correction with Harmony
   set.seed(42)
   cnt_all_f2 <- harmony::HarmonyMatrix(
     data_mat = cnt_all_f,
@@ -461,6 +457,109 @@ batch_remove <- function(list_count, xys=NULL, gene_select = "hvgs", n_gene = 20
   return (cnt_all_f2)
 }
 
+
+# function for obtaining the molecular, image, and geospatial profiles on
+# single-cell SRT data
+
+profiles_sc <- function(cnts, xys, cell_type, x_grid = 30, y_grid = 30, adjacent_slides = TRUE, gene_select = "sparkx", n_gene = 2000, pcn = 3){
+  profiles <- list()
+  for (s in 1:length(xys)){
+    profiles[[s]] <- get_profiles(t(cnts[[s]]), xys[[s]], cell_type[[s]], x_grid = x_grid, y_grid = y_grid)
+  }
+  
+  # concat the profiles and proceed
+  all_cell_type <- c()
+  for (s in 1:length(xys)){
+    all_cell_type <- c(all_cell_type, cell_type[[s]])
+  }
+  unique_cell_types <- unique(all_cell_type)
+  V <- matrix(ncol = length(unique_cell_types), nrow = 0)
+  G <- matrix(ncol = 8, nrow = 0)
+  G_origin <- NULL
+  each_length <-c()
+  list_count <- NULL
+  spot_xys <- NULL
+  cell_assignment <- NULL
+  
+  for (s in 1:length(xys)){
+    res = profiles[[s]]
+    
+    M1 <- res$M
+    V1 <- res$V
+    
+    new_V <- matrix(0, nrow = nrow(V1), ncol = length(unique_cell_types))
+    colnames(new_V) <- unique_cell_types
+    indices <- match(unique_cell_types, colnames(V1))
+    
+    for (i in seq_along(indices)) {
+      index <- indices[i]
+      if (!is.na(index)) {  # If the name is found in the column names of V
+        new_V[, i] <- V1[, index]
+      }
+    }
+    
+    G1 <- res$G
+    spot_xy <- res$spot_xy
+    
+    each_length <- c(each_length, nrow(spot_xy))
+    list_count[[s]] <- t(M1)
+    spot_xys[[s]] <- spot_xy
+    cell_assignment[[s]] <- res$cell_assign
+    G_origin[[s]] <- G1
+    
+    if (s > 1){
+      non_zero_indices <- G1 != 0
+      G1[non_zero_indices] <- G1[non_zero_indices] + sum(each_length[1:(s-1)])
+    }
+    
+    # store the matrix
+    V <- rbind(V, new_V)
+    G <- rbind(G, G1)
+    
+  }
+  print("Done with getting the image profile...")
+  
+  if (adjacent_slides == TRUE){
+    ### add adjacent slides information to G
+    matt <- generate_adjacent_matrix(x_grid, y_grid)
+    G_all <- matrix(0, nrow = length(matt), ncol = 8)
+    for (i in 1:length(matt)){
+      v <- matt[[i]]
+      if (length(v) < 8){
+        v <- c(v, rep(0, 8 - length(v)))
+      }
+      G_all[i,] <- v
+    }
+    non_zero_indices <- G_all != 0
+    empty_spots_all <- c()
+    G_connected <- matrix(ncol = 10, nrow = 0)
+    num_of_grid <- x_grid * y_grid
+    for (s in 1:length(xys)){
+      G1 <- G_all
+      G1[non_zero_indices] <- G1[non_zero_indices] + num_of_grid*(s-1)
+      empty_spot <- profiles[[s]]$empty_spot
+      if (s == 1){
+        G1 <- cbind(G1, rep(0, num_of_grid), seq(num_of_grid*s + 1, num_of_grid*s + num_of_grid))
+      }else if (s == length(xys)){
+        G1 <- cbind(G1, seq(num_of_grid*(s-2)+1, num_of_grid*(s-2)+num_of_grid), rep(0, num_of_grid))
+      }else{
+        G1 <- cbind(G1, seq(num_of_grid*(s-2)+1, num_of_grid*(s-2)+num_of_grid), seq(num_of_grid*s + 1, num_of_grid*s + num_of_grid))
+      }
+      G_connected <- rbind(G_connected, G1)
+      empty_spots_all <- c(empty_spots_all, (empty_spot + num_of_grid*(s-1)))
+    }
+    
+    list_of_rows <- apply(G_connected, 1, function(x) x[x != 0])
+    
+    G <- adjust_matrix(list_of_rows, empty_spots_all, ncol = 10)
+  }
+  
+  print("Done with getting the geospatial profile...")
+  Y <- batch_remove(list_count, xys = xys, gene_select = gene_select, n_gene = n_gene, pcn = pcn)
+  print("Done with getting the molecular profile...")
+  
+  return(list(Y = Y, V = V, G = G, G_origin = G_origin, spot_xys = spot_xys, cell_assignment = cell_assignment))
+}
 
 
 
