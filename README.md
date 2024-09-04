@@ -99,7 +99,8 @@ The result is
 ## Tutorials for using the deep learning model
 
 The implementation of Hover-Net can be found at [The official GitHub](https://github.com/vqdang/hover_net?tab=readme-ov-file).
-The implementation of HD-Yolo can be found [here](https://github.com/impromptuRong/hd_wsi). The tutorial for using STDeconvolve in R can be found [here](https://jef.works/STdeconvolve/).\\
+The implementation of HD-Yolo can be found [here](https://github.com/impromptuRong/hd_wsi). The tutorial for using STDeconvolve in R can be found [here](https://jef.works/STdeconvolve/).
+
 
 The number of cell types $Q$ is pre-defined by either the pre-trained models in the deep learning model used, or user specified in STDeconvolve. But STDeconvolve provides a build-in method that can automatically choose the optimal value of $Q$ for users.
 
@@ -107,4 +108,4 @@ The number of cell types $Q$ is pre-defined by either the pre-trained models in 
 The details of applying BayeSMART on one donor or four donors together are all provided in this toturial [file](Tutorials/Tutorials_DLPFC.html)
 
 ## Tutorials for BayeSMART on single-cell SRT data
-The details of applying BayeSMART on single-cell SRT data such as STARmap and MERFISH are provided in this tutorial [markdown file](Tutorials/Tutorials_sc.html).
+The details of applying BayeSMART on single-cell SRT data such as STARmap and MERFISH are provided in this tutorial [markdown file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_sc.html).
