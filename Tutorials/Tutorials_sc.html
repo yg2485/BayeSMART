@@ -360,6 +360,23 @@ Data</h1>
 
 <div id="bayesmart-on-starmap" class="section level2">
 <h2>BayeSMART on STARmap</h2>
+<p>Firstly, import the STARmap dataset and reorganize it.</p>
+<pre class="r"><code>source(&quot;~/Desktop/Research/iBurst/iBURST/code/BayeSMART.R&quot;)
+load(&quot;/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/STARmap.RData&quot;)
+
+cnts &lt;- cnts_starmap
+xys &lt;- lapply(xys_starmap, function(info.i){
+  as.matrix(info.i[, c(&quot;x&quot;, &quot;y&quot;)])
+})
+
+cell_type &lt;- lapply(xys_starmap, function(info.i){
+  as.matrix(info.i[, c(&quot;cell&quot;)])
+})
+
+annotations &lt;- lapply(xys_starmap, function(info.i){
+  as.matrix(info.i[, c(&quot;annotation&quot;)])
+})</code></pre>
+<p>Then get the molecular, geospatial, and image profiles.</p>
 <pre class="r"><code>x_grid &lt;- 25
 y_grid &lt;- 20
 
@@ -367,6 +384,7 @@ profiles_sc &lt;- profiles_sc(cnts, xys, cell_type, x_grid = x_grid, y_grid = y_
 <pre><code>## [1] &quot;Done with getting the image profile...&quot;
 ## [1] &quot;Done with getting the geospatial profile...&quot;
 ## [1] &quot;Done with getting the molecular profile...&quot;</code></pre>
+<p>Run BayeSMART and get the clustering result.</p>
 <pre class="r"><code>K &lt;- 4
 w &lt;- 0.1
 
@@ -389,7 +407,8 @@ result &lt;- run.BayeSMART(V, Y, G, n_cluster = K, w = w, lambda = 0)</code></pr
 ## 90% has been done
 ## [1] &quot;100% has been done&quot;</code></pre>
 <pre class="r"><code>spatial_domain &lt;- get.spatial.domain(result)
-domain_res &lt;- domain_split(spatial_domain, G_origin, spot_xys)</code></pre>
+domain_res &lt;- domain_split(spatial_domain, G_origin)</code></pre>
+<p>Calculate the ARI for each sample, and get the plots.</p>
 <pre class="r"><code># calculate ARI
 library(mclust)
 library(aricode)
@@ -419,6 +438,20 @@ for (s in 1:3){
 </div>
 <div id="bayesmart-on-merfish" class="section level2">
 <h2>BayeSMART on MERFISH</h2>
+<pre class="r"><code>source(&quot;~/Desktop/Research/iBurst/iBURST/code/BayeSMART.R&quot;)
+load(&quot;/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/MERFISH.RData&quot;)
+
+cnts &lt;- cnts_merfish # a list of gene expression count matrices
+xys &lt;- lapply(xys_merfish, function(info.i){
+  as.matrix(info.i[, c(&quot;x&quot;, &quot;y&quot;)])
+})
+
+cell_type &lt;- lapply(xys_merfish, function(info.i){
+  as.vector(info.i[, &quot;cell&quot;])
+})
+annotations &lt;- lapply(xys_merfish, function(info.i){
+  as.vector(info.i[, &quot;annotation&quot;])
+})</code></pre>
 <pre class="r"><code>x_grid &lt;- 16
 y_grid &lt;- 16
 
@@ -450,7 +483,7 @@ result &lt;- run.BayeSMART(V, Y, G, n_cluster = K, f_val = 1.1, w = w, lambda = 
 ## 90% has been done
 ## [1] &quot;100% has been done&quot;</code></pre>
 <pre class="r"><code>spatial_domain &lt;- get.spatial.domain(result)
-domain_res &lt;- domain_split(spatial_domain, G_origin, spot_xys)
+domain_res &lt;- domain_split(spatial_domain, G_origin)
 
 # calculate ARI
 library(mclust)
@@ -459,7 +492,7 @@ scores_ARI &lt;- c()
 for (s in 1:3){
   annotation &lt;- annotations[[s]]
   cell_z &lt;- domain_res[[s]][cell_assignment[[s]]]
-  
+
   # plot the clustering result
   df &lt;- data.frame(xys[[s]])
   df$annotation &lt;- factor(cell_z)

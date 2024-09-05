@@ -12,7 +12,8 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ## BayeSMART on STARmap
 
-```{r, echo=FALSE}
+Firstly, import the STARmap dataset and reorganize it.
+```{r}
 source("~/Desktop/Research/iBurst/iBURST/code/BayeSMART.R")
 load("/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/STARmap.RData")
 
@@ -31,6 +32,7 @@ annotations <- lapply(xys_starmap, function(info.i){
 
 ```
 
+Then get the molecular, geospatial, and image profiles.
 ```{r}
 x_grid <- 25
 y_grid <- 20
@@ -39,7 +41,7 @@ profiles_sc <- profiles_sc(cnts, xys, cell_type, x_grid = x_grid, y_grid = y_gri
 
 ```
 
-
+Run BayeSMART and get the clustering result.
 ```{r}
 K <- 4
 w <- 0.1
@@ -54,9 +56,10 @@ spot_xys <- profiles_sc[['spot_xys']]
 result <- run.BayeSMART(V, Y, G, n_cluster = K, w = w, lambda = 0)
 
 spatial_domain <- get.spatial.domain(result)
-domain_res <- domain_split(spatial_domain, G_origin, spot_xys)
+domain_res <- domain_split(spatial_domain, G_origin)
 ```
 
+Calculate the ARI for each sample, and get the plots.
 ```{r, fig.width=4, fig.height=3}
 # calculate ARI
 library(mclust)
@@ -85,7 +88,7 @@ mean(scores_ARI)
 ```
 
 ## BayeSMART on MERFISH
-```{r, echo=FALSE}
+```{r}
 source("~/Desktop/Research/iBurst/iBURST/code/BayeSMART.R")
 load("/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/MERFISH.RData")
 
@@ -127,7 +130,7 @@ spot_xys <- profiles_sc[['spot_xys']]
 result <- run.BayeSMART(V, Y, G, n_cluster = K, f_val = 1.1, w = w, lambda = 0.009)
 
 spatial_domain <- get.spatial.domain(result)
-domain_res <- domain_split(spatial_domain, G_origin, spot_xys)
+domain_res <- domain_split(spatial_domain, G_origin)
 
 # calculate ARI
 library(mclust)
@@ -136,7 +139,7 @@ scores_ARI <- c()
 for (s in 1:3){
   annotation <- annotations[[s]]
   cell_z <- domain_res[[s]][cell_assignment[[s]]]
-  
+
   # plot the clustering result
   df <- data.frame(xys[[s]])
   df$annotation <- factor(cell_z)

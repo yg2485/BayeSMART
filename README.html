@@ -415,7 +415,7 @@ result &lt;- run.BayeSMART(V, Y, G, n_cluster = K, w = w)
 
 # get the posterior inference on spatial domains
 spatial_domain &lt;- get.spatial.domain(result)
-z_all &lt;- domain_split(spatial_domain, G_origin, xys)</code></pre>
+z_all &lt;- domain_split(spatial_domain, G_origin)</code></pre>
 </div>
 <div id="calculate-the-ari-for-each-sample" class="section level2">
 <h2>Calculate the ARI for each sample</h2>
@@ -435,6 +435,16 @@ print(scores_ARI)</code></pre>
 <pre class="r"><code>&gt; scores_ARI
 [1] 0.6744486 0.3044600 0.7814962 0.3578727</code></pre>
 </div>
+<div id="tutorial-for-bayesmart-on-dlpfc-10x-visium-data" class="section level2">
+<h2>Tutorial for BayeSMART on DLPFC 10x Visium data</h2>
+<p>The details of applying BayeSMART on one donor or four donors
+together are all provided in this toturial <a href="https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_DLPFC.html">file</a></p>
+</div>
+<div id="tutorials-for-bayesmart-on-single-cell-srt-data" class="section level2">
+<h2>Tutorials for BayeSMART on single-cell SRT data</h2>
+<p>The details of applying BayeSMART on single-cell SRT data such as
+STARmap and MERFISH are provided in this tutorial <a href="https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_sc.html">file</a>.</p>
+</div>
 <div id="tutorials-for-using-the-deep-learning-model" class="section level2">
 <h2>Tutorials for using the deep learning model</h2>
 <p>The implementation of Hover-Net can be found at <a href="https://github.com/vqdang/hover_net?tab=readme-ov-file">The
@@ -444,17 +454,6 @@ for using STDeconvolve in R can be found <a href="https://jef.works/STdeconvolve
 pre-defined by either the pre-trained models in the deep learning model
 used, or user specified in STDeconvolve. But STDeconvolve provides a
 build-in method that can automatically choose the optimal value of <span class="math inline">\(Q\)</span> for users.</p>
-</div>
-<div id="tutorial-for-bayesmart-on-dlpfc-10x-visium-data" class="section level2">
-<h2>Tutorial for BayeSMART on DLPFC 10x Visium data</h2>
-<p>The details of applying BayeSMART on one donor or four donors
-together are all provided in this toturial <a href="Tutorials/Tutorials_DLPFC.html">file</a></p>
-</div>
-<div id="tutorials-for-bayesmart-on-single-cell-srt-data" class="section level2">
-<h2>Tutorials for BayeSMART on single-cell SRT data</h2>
-<p>The details of applying BayeSMART on single-cell SRT data such as
-STARmap and MERFISH are provided in this tutorial <a href="https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_sc.html">markdown
-file</a>.</p>
 </div>
 </div>
 

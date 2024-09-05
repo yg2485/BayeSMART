@@ -6,19 +6,140 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
-## BayeSMART on STARmap
-
-```{r, echo=FALSE}
-
-
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, eval = FALSE)
 ```
 
 
 
+## BayeSMART on all 12 slides of three donors
 
-## BayeSMART on MERFISH
+```{r}
 
+load("/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/DLPFC_p1.RData")
+load("/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/DLPFC_p2.RData")
+load("/Users/yanghongguo/Desktop/Research/iBurst/data/4 dataset final/DLPFC_p3.RData")
+
+cntm <- c(cnts_DLPFC_p1, cnts_DLPFC_p2, cnts_DLPFC_p3)
+xys <- c(xys_DLPFC_p1, xys_DLPFC_p2, xys_DLPFC_p3)
+
+# We get the matrix that contains all the gene count matrices
+layers = matrix(NA, nrow = 33538, ncol = 0)
+each_length <- c()
+
+for (s in 1:12){
+  layer1 <- cntm[[s]]
+  layers <- cbind(layers, layer1)
+  each_length <- c(each_length, ncol(layer1))
+}
+
+```
+
+Since there is no such deep learning model to analyze the HD-stained images of DLPFC, we use the reference-free method STDeconvolve instead to get the image profile.
+```{r}
+library(STdeconvolve)
+
+counts <- cleanCounts(layers, min.lib.size = 1)
+corpus <- restrictCorpus(counts, removeAbove=1.0, removeBelow = 0.05)
+ldas <- fitLDA(t(as.matrix(corpus)), Ks = c(5,6,7,8,9,10))
+## get best model results
+optLDA <- optimalModel(models = ldas, opt = "min")
+## extract deconvolved cell-type proportions (theta) and transcriptional profiles (beta)
+results <- getBetaTheta(optLDA, perc.filt = 0.05, betaScale = 1000)
+deconProp <- results$theta
+
+V <- round(as.matrix(deconProp)*100)
+```
+
+Then get the geospatial profile $G$ and molecular profile $Y$.
+```{r}
+G <- matrix(ncol = 6, nrow = 0)
+G_origin <- NULL
+spot_xys <- NULL
+list_count <- NULL
+
+for (s in 1:12){
+
+  M1 <- as.matrix(cntm[[s]])
+  
+  spot_xy <- xym[[s]]
+  G1 <- get.neighbor(spot_xy, 6)
+
+  list_count[[s]] <- M1
+  G_origin[[s]] <- G1
+  
+  if (s > 1){
+    non_zero_indices <- G1 != 0
+    G1[non_zero_indices] <- G1[non_zero_indices] + sum(each_length[1:(s-1)])
+  }
+  
+  # store the matrix
+  G <- rbind(G, G1)
+  
+  spot_xys[[s]] <- spot_xy
+  print(paste0("Done with sample ", s))
+}
+
+Y <- batch_remove(list_count, xys = xys, gene_select = "sparkx", n_gene = 2000, pcn = 3)
+
+```
+
+Note that up to this point, the geospatial profile $G$ only contains neighborhood information within each section, not across adjacent sections. To include the neighborhood information between adjacent slides, we need to add two more columns to the matrix $G$ manually by assigning spots with the same x and y axis values as neighbors from two adjacent slides. No neighborhood information between slides from different individuals.
+
+```{r}
+xys_1 <- lapply(xys_DLPFC_p1, function(info.i){
+  as.matrix(info.i[, c("x", "y")])
+})
+xys_2 <- lapply(xys_DLPFC_p2, function(info.i){
+  as.matrix(info.i[, c("x", "y")])
+})
+xys_3 <- lapply(xys_DLPFC_p3, function(info.i){
+  as.matrix(info.i[, c("x", "y")])
+})
+
+G_extra_1 <- G_extra(xys_1)
+G_extra_2 <- G_extra(xys_2)
+G_extra_3 <- G_extra(xys_3)
+
+non_zero_indices <- G_extra_2 != 0
+G_extra_2[non_zero_indices] <- G_extra_2[non_zero_indices] + nrow(G_extra_1)
+
+non_zero_indices <- G_extra_3 != 0
+G_extra_3[non_zero_indices] <- G_extra_3[non_zero_indices] + nrow(G_extra_1) + nrow(G_extra_2)
+
+G_extra <- rbind(G_extra_1, G_extra_2, G_extra_3)
+
+G <- cbind(G, G_extra)
+```
+
+Then run BayeSMART on all 12 slides.
+```{r}
+K <- 7
+w <- 0.1
+
+result <- run.BayeSMART(V, Y, G, n_cluster = K, w = w)
+
+spatial_domain <- get.spatial.domain(result)
+domain_res <- domain_split(spatial_domain, G_origin)
+```
+
+With the clustering result we can calculate the ARI for each slide.
+```{r}
+annotations <- lapply(xys, function(info.i){
+  as.matrix(info.i[, c("annotation")])
+})
+
+# calculate ARI
+library(mclust)
+library(aricode)
+scores_ARI <- c()
+for (s in 1:12){
+  annotation <- annotations[[s]]
+  domains <- domain_res[[s]]
+  
+  ari_score <- adjustedRandIndex(domains, annotation)
+  scores_ARI <- c(scores_ARI, ari_score)
+}
+
+scores_ARI
+mean(scores_ARI)
+```

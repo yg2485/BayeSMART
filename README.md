@@ -70,7 +70,7 @@ result <- run.BayeSMART(V, Y, G, n_cluster = K, w = w)
 
 # get the posterior inference on spatial domains
 spatial_domain <- get.spatial.domain(result)
-z_all <- domain_split(spatial_domain, G_origin, xys)
+z_all <- domain_split(spatial_domain, G_origin)
 ```
 
 
@@ -96,6 +96,14 @@ The result is
 [1] 0.6744486 0.3044600 0.7814962 0.3578727
 ```
 
+## Tutorial for BayeSMART on DLPFC 10x Visium data
+The details of applying BayeSMART on one donor or four donors together are all provided in this toturial [file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_DLPFC.html)
+
+
+## Tutorials for BayeSMART on single-cell SRT data
+The details of applying BayeSMART on single-cell SRT data such as STARmap and MERFISH are provided in this tutorial [file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_sc.html).
+
+
 ## Tutorials for using the deep learning model
 
 The implementation of Hover-Net can be found at [The official GitHub](https://github.com/vqdang/hover_net?tab=readme-ov-file).
@@ -104,8 +112,3 @@ The implementation of HD-Yolo can be found [here](https://github.com/impromptuRo
 
 The number of cell types $Q$ is pre-defined by either the pre-trained models in the deep learning model used, or user specified in STDeconvolve. But STDeconvolve provides a build-in method that can automatically choose the optimal value of $Q$ for users.
 
-## Tutorial for BayeSMART on DLPFC 10x Visium data
-The details of applying BayeSMART on one donor or four donors together are all provided in this toturial [file](Tutorials/Tutorials_DLPFC.html)
-
-## Tutorials for BayeSMART on single-cell SRT data
-The details of applying BayeSMART on single-cell SRT data such as STARmap and MERFISH are provided in this tutorial [markdown file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_sc.html).

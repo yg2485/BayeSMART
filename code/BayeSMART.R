@@ -64,12 +64,12 @@ get.neighbor <- function(loc, n_neighbor, tune = 2){
 # tune: tuning parameter that can change the threshold for choosing neighbors
 spatial_concat <- function(xys, n_neighbor, tune = 2){
   G <- matrix(ncol = n_neighbor, nrow = 0)
-  G_origin <- matrix(ncol = n_neighbor, nrow = 0)
+  G_origin <- NULL
   each_length <- sapply(xys, nrow)
   
   for (s in 1:length(xys)){
     G1 <- get.neighbor(xys[[s]], n_neighbor, tune = tune)
-    G_origin <- rbind(G_origin, G1)
+    G_origin[[s]] <- G1
     if (s > 1){
       non_zero_indices <- G1 != 0
       G1[non_zero_indices] <- G1[non_zero_indices] + sum(each_length[1:(s-1)])
@@ -245,10 +245,10 @@ get.domain.cell.prop <- function(result){
 
 
 # Get the list of clustering result of each sample
-domain_split <- function(spatial_domain, G_origin, xys, area_unit = 3){
+domain_split <- function(spatial_domain, G_origin, area_unit = 3){
   domain_list <- NULL
-  each_length <- sapply(xys, nrow)
-  for (s in 1:length(xys)){
+  each_length <- sapply(G_origin, nrow)
+  for (s in 1:length(G_origin)){
     l = each_length[s] 
     
     if (s == 1){
@@ -413,7 +413,7 @@ get_profiles <- function(count, location, celltype, x_grid = 30, y_grid = 30){
 # list_count: a list containing all the count matrix of each sample
 # each_list: a vector of the number of spots in each sample
 # xys: a list containing all the spot location for each sample
-# geneSelect: method used for selecting SVGs or HVGs
+# gene_select: method used for selecting SVGs or HVGs
 # n_gene: number of genes selected as SVGs or HVGs
 # pcn: number of principle components kept
 batch_remove <- function(list_count, xys=NULL, gene_select = "hvgs", n_gene = 2000, pcn = 3){
@@ -458,9 +458,14 @@ batch_remove <- function(list_count, xys=NULL, gene_select = "hvgs", n_gene = 20
 }
 
 
-# function for obtaining the molecular, image, and geospatial profiles on
-# single-cell SRT data
-
+# function for obtaining the molecular, image, and geospatial profiles on single-cell SRT data
+# cnts: a list containing all the count matrix of each sample
+# xys: a list containing all the spot location for each sample
+# cell_type: a list containing all the cell type information for each cell
+# x_grid, y_grid: dimension of x and y axis when assigning grids
+# gene_select: method used for selecting SVGs or HVGs
+# n_gene: number of genes selected as SVGs or HVGs
+# pcn: number of principle components kept
 profiles_sc <- function(cnts, xys, cell_type, x_grid = 30, y_grid = 30, adjacent_slides = TRUE, gene_select = "sparkx", n_gene = 2000, pcn = 3){
   profiles <- list()
   for (s in 1:length(xys)){
@@ -562,6 +567,53 @@ profiles_sc <- function(cnts, xys, cell_type, x_grid = 30, y_grid = 30, adjacent
 }
 
 
+
+# Function for getting the neighborhood information for adjacent slides
+# make sure the x and y values for each spot in `xys` are integers representing the index of spot on the slides
+G_extra <- function(xys){
+  l <- length(xys)
+  each_length <- sapply(xys, nrow)
+  res <- matrix(0, nrow = 0, ncol = 2)
+  for (s in 1:l){
+    G_new <- matrix(0, nrow = nrow(xys[[s]]), ncol = 2)
+    if (s == 1){
+      for (i in 1:nrow(xys[[1]])){
+        for (j in 1:nrow(xys[[2]])){
+          if (all(xys[[1]][i,] == xys[[2]][j,])){
+            G_new[i,2] <- j + each_length[1]
+          }
+        }
+      }
+    }else if (s == l){
+      for (i in 1:nrow(xys[[l]])){
+        # the layer above
+        for (j in 1:nrow(xys[[l-1]])){
+          if (all(xys[[l]][i,] == xys[[l-1]][j,])){
+            G_new[i,1] <- j + sum(each_length[1:(l-2)])
+          }
+        }
+      }
+    }else{
+      for (i in 1:nrow(xys[[s]])){
+        # the layer above
+        for (j in 1:nrow(xys[[s-1]])){
+          if (all(xys[[s]][i,] == xys[[s-1]][j,])){
+            G_new[i,1] <- j + ifelse(s-2 < 1, 0, sum(each_length[1:(s-2)]))
+          }
+        }
+        
+        # the layer below
+        for (j in 1:nrow(xys[[s+1]])){
+          if (all(xys[[s]][i,] == xys[[s+1]][j,])){
+            G_new[i,2] <- j + sum(each_length[1:s])
+          }
+        }
+      }
+    }
+    res <- rbind(res, G_new)
+  }
+  return(res)
+}
 
 ######################
 # Helper functions
