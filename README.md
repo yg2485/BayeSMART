@@ -96,12 +96,12 @@ The result is
 [1] 0.6744486 0.3044600 0.7814962 0.3578727
 ```
 
-## Tutorial for BayeSMART on DLPFC 10x Visium data
-The details of applying BayeSMART on one donor or four donors together are all provided in this tutorial [file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_DLPFC.html)
-
 
 ## Tutorials for BayeSMART on single-cell SRT data
 The details of applying BayeSMART on single-cell SRT data such as STARmap and MERFISH are provided in this tutorial [file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_sc.html).
+
+## Tutorial for BayeSMART on DLPFC 10x Visium data
+The details of applying BayeSMART on one donor or four donors together are all provided in this tutorial [file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_DLPFC.html)
 
 
 ## Tutorials for using the deep learning model
