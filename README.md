@@ -97,7 +97,7 @@ The result is
 ```
 
 ## Tutorial for BayeSMART on DLPFC 10x Visium data
-The details of applying BayeSMART on one donor or four donors together are all provided in this toturial [file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_DLPFC.html)
+The details of applying BayeSMART on one donor or four donors together are all provided in this tutorial [file](https://yg2485.github.io/BayeSMART/Tutorials/Tutorials_DLPFC.html)
 
 
 ## Tutorials for BayeSMART on single-cell SRT data
@@ -110,5 +110,5 @@ The implementation of Hover-Net can be found at [The official GitHub](https://gi
 The implementation of HD-Yolo can be found [here](https://github.com/impromptuRong/hd_wsi). The tutorial for using STDeconvolve in R can be found [here](https://jef.works/STdeconvolve/).
 
 
-The number of cell types $Q$ is pre-defined by either the pre-trained models in the deep learning model used, or user specified in STDeconvolve. But STDeconvolve provides a build-in method that can automatically choose the optimal value of $Q$ for users.
+The number of cell types Q is pre-defined by either the pre-trained models in the deep learning model used, or user specified in STDeconvolve. But STDeconvolve provides a build-in method that can automatically choose the optimal value of Q for users.
 
