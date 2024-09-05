@@ -53,7 +53,7 @@ G_origin <- profiles_sc[['G_origin']]
 cell_assignment <- profiles_sc[['cell_assignment']]
 spot_xys <- profiles_sc[['spot_xys']]
 
-result <- run.BayeSMART(V, Y, G, n_cluster = K, w = w, lambda = 0)
+result <- run.BayeSMART(V, Y, G, n_cluster = K, w = w)
 
 spatial_domain <- get.spatial.domain(result)
 domain_res <- domain_split(spatial_domain, G_origin)
